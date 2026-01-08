@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "86796746264",
+    "project_id": "yad3-23504",
+    "storage_bucket": "yad3-23504.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:86796746264:android:f56a7b659e69bda2fa8d6d",
+        "android_client_info": {
+          "package_name": "com.example.yad3"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCtm11nj_RHd2GvIWTPIJc-6uUuPDytGtU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
