@@ -10,6 +10,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
@@ -23,6 +24,9 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import com.bumptech.glide.Glide;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -56,6 +60,8 @@ public class profile extends AppCompatActivity {
 
     private static final String IMGBB_API_KEY = "3c6e38b46c0548e23b364cf83954877f";
 
+    BottomNavigationView bottomNav = findViewById(R.id.bottom_nav);
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -83,6 +89,16 @@ public class profile extends AppCompatActivity {
         loadUserData(user.getUid());
 
         btnChangeImage.setOnClickListener(v -> showImagePickerDialog());
+
+        bottomNav.setOnItemSelectedListener(item -> {
+            if (item.getItemId() == R.id.mnu_profile) {
+                item.setIcon(R.drawable.userbig);
+            }
+            if(item.getItemId() == R.id.mnu_dash)
+                startActivity(new Intent(profile.this, log_in.class));
+
+            return true;
+        });
 
         btnSignOut.setOnClickListener(v -> {
             FirebaseAuth.getInstance().signOut();
@@ -140,15 +156,73 @@ public class profile extends AppCompatActivity {
 
     // ===================== IMAGE PICKER =====================
     private void showImagePickerDialog() {
-        String[] options = {"📷 Camera", "🖼️ Album"};
+        String[] options = {"Camera","Album","remove image"};
         new android.app.AlertDialog.Builder(this)
-                .setTitle("select image")
+                .setTitle("")
                 .setItems(options, (dialog, which) -> {
                     if (which == 0) openCamera();
-                    else checkPermissionAndOpenGallery();
+                    if (which == 1) checkPermissionAndOpenGallery();
+                    if (which == 2){
+                        imageview.setImageResource(R.drawable.user2);
+                        Bitmap bitmap = Utils.drawableToBitmap(this, R.drawable.user2);
+                        uploadDrawableBitmapToImgBB(bitmap);
+                    }
                 })
                 .show();
     }
+
+    private void uploadDrawableBitmapToImgBB(Bitmap bitmap) {
+        try {
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 80, baos);
+
+            String encodedImage = android.util.Base64.encodeToString(
+                    baos.toByteArray(),
+                    android.util.Base64.NO_WRAP
+            );
+
+            OkHttpClient client = new OkHttpClient();
+            RequestBody body = new FormBody.Builder()
+                    .add("key", IMGBB_API_KEY)
+                    .add("image", encodedImage)
+                    .build();
+
+            Request request = new Request.Builder()
+                    .url("https://api.imgbb.com/1/upload")
+                    .post(body)
+                    .build();
+
+            client.newCall(request).enqueue(new Callback() {
+                @Override
+                public void onFailure(Call call, java.io.IOException e) {
+                    runOnUiThread(() -> Toast.makeText(profile.this, "Upload failed", Toast.LENGTH_SHORT).show());
+                }
+
+                @Override
+                public void onResponse(Call call, Response response) {
+                    try {
+                        String res = response.body().string();
+                        String imageUrl = Utils.parseImgBBUrl(res);
+
+                        runOnUiThread(() -> {
+                            Glide.with(profile.this)
+                                    .load(imageUrl)
+                                    .into(imageview);
+
+                            saveImageUrl(imageUrl); // حفظ الرابط في Firestore
+                        });
+
+                    } catch (Exception e) {
+                        runOnUiThread(() -> Toast.makeText(profile.this, "Upload error", Toast.LENGTH_SHORT).show());
+                    }
+                }
+            });
+
+        } catch (Exception e) {
+            Toast.makeText(this, "Image error", Toast.LENGTH_SHORT).show();
+        }
+    }
+
 
     private void openGallery() {
         Intent intent = new Intent(Intent.ACTION_PICK,
@@ -266,9 +340,27 @@ public class profile extends AppCompatActivity {
         EditText editPhone = editDialog.findViewById(R.id.editPhone);
         Button btnSave = editDialog.findViewById(R.id.btnSave);
         Button btnCancel = editDialog.findViewById(R.id.btnCancel);
+        Button btnReset = editDialog.findViewById(R.id.btnReset2);
 
         editName.setText(name.getText());
         editPhone.setText(phone.getText());
+
+        btnReset.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                FirebaseUser user = auth.getCurrentUser();
+                auth.sendPasswordResetEmail(user.getEmail()).addOnCompleteListener(new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        if(task.isSuccessful()){
+                            Toast.makeText(profile.this, "Reset email sent to " + user.getEmail(), Toast.LENGTH_LONG).show();
+                        } else {
+                            Toast.makeText(profile.this, "Failed to send  ", Toast.LENGTH_LONG).show();
+                        }
+                    }
+                });
+            }
+        });
 
         btnCancel.setOnClickListener(v -> editDialog.dismiss());
 

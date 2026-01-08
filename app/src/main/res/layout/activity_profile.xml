@@ -31,7 +31,7 @@
                 android:layout_width="100dp"
                 android:layout_height="100dp"
                 android:layout_gravity="center_horizontal"
-                android:src="@drawable/user"
+                android:src="@drawable/user2"
                 android:scaleType="centerCrop"
                 android:background="@android:color/transparent"
                 app:shapeAppearanceOverlay="@style/CircleImage" />
@@ -245,5 +245,15 @@
 
     </androidx.cardview.widget.CardView>
 
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:background="#dbf2ff"
+        app:menu="@menu/my_menu"
+        android:id="@+id/bottom_navigation"
+        app:labelVisibilityMode="labeled"
+        app:itemPaddingTop="17dp"
+        />
 
 </RelativeLayout>
