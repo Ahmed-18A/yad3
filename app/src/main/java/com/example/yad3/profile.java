@@ -60,12 +60,14 @@ public class profile extends AppCompatActivity {
 
     private static final String IMGBB_API_KEY = "3c6e38b46c0548e23b364cf83954877f";
 
-    BottomNavigationView bottomNav = findViewById(R.id.bottom_nav);
+    BottomNavigationView bottomNav;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_profile);
+
+        bottomNav = findViewById(R.id.bottom_navigation);
 
         imageview = findViewById(R.id.profileImage);
         name = findViewById(R.id.name);
@@ -94,9 +96,18 @@ public class profile extends AppCompatActivity {
             if (item.getItemId() == R.id.mnu_profile) {
                 item.setIcon(R.drawable.userbig);
             }
-            if(item.getItemId() == R.id.mnu_dash)
-                startActivity(new Intent(profile.this, log_in.class));
-
+            if(item.getItemId() == R.id.mnu_dash) {
+                startActivity(new Intent(profile.this, activity_dashboard.class));
+                finish();
+            }
+            if(item.getItemId() == R.id.mnu_add) {
+                startActivity(new Intent(profile.this, addCar.class));
+                finish();
+            }
+            if(item.getItemId() == R.id.mnu_search) {
+                startActivity(new Intent(profile.this, SearchActivity.class));
+                finish();
+            }
             return true;
         });
 
